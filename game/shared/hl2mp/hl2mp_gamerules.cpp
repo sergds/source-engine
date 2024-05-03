@@ -844,9 +844,9 @@ int CHL2MPRules::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget 
 const char *CHL2MPRules::GetGameDescription( void )
 { 
 	if ( IsTeamplay() )
-		return "Team Deathmatch"; 
+		return "Team SergDS Mod"; 
 
-	return "Deathmatch"; 
+	return "SergDS Mod"; 
 } 
 
 bool CHL2MPRules::IsConnectedUserInfoChangeAllowed( CBasePlayer *pPlayer )

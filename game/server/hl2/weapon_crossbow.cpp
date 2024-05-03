@@ -14,6 +14,7 @@
 #include "in_buttons.h"
 #include "soundent.h"
 #include "game.h"
+#include "util.h"
 #include "vstdlib/random.h"
 #include "engine/IEngineSound.h"
 #include "IEffects.h"

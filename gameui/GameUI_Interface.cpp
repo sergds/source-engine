@@ -967,6 +967,10 @@ void CGameUI::OnLevelLoadingFinished(bool bError, const char *failureReason, con
 
 	// notify
 	BasePanel()->OnLevelLoadingFinished();
+	
+	if (IsInBackgroundLevel()) {
+		PlayGameStartupSound();
+	};
 }
 
 //-----------------------------------------------------------------------------

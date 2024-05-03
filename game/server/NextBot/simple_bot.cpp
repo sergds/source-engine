@@ -91,6 +91,13 @@ void CSimpleBot::Spawn( void )
 {
 	BaseClass::Spawn();
 
+	SetHullType(HULL_HUMAN);
+
+	SetSolid( SOLID_BBOX );
+	AddSolidFlags( FSOLID_NOT_STANDABLE );
+	SetBloodColor( BLOOD_COLOR_MECH );
+
+	m_iHealth = 8;
 #ifndef DOTA_DLL
 	SetModel( "models/humans/group01/female_01.mdl" );
 #endif
@@ -140,7 +147,7 @@ public:
 	{
 		// smooth out the bot's path following by moving toward a point farther down the path
 		m_path.SetMinLookAheadDistance( 300.0f );
-
+		
 		return Continue();
 	}
 
