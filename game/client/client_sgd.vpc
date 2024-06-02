@@ -33,6 +33,10 @@ $Project "Client (SGD)"
 		$File	"$SRCDIR\game\shared\predicted_viewmodel.h"
 		$File	"$SRCDIR\game\shared\teamplay_round_timer.cpp"
 		$File	"$SRCDIR\game\shared\teamplay_round_timer.h"
+		$File	"vscript_client.cpp"
+		$File	"vscript_client.h"
+		$File	"$SRCDIR\game\shared\vscript_shared.cpp"
+		$File	"$SRCDIR\game\shared\vscript_shared.h"
 		
 		$Folder	"SGD DLL"
 		{

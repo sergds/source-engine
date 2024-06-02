@@ -223,7 +223,13 @@ $Project "Server (SGD)"
 			$File	"hl2\weapon_annabelle.cpp"
 			$File	"hl2\weapon_bugbait.cpp"
 			$File	"hl2\weapon_crowbar.h"
+			$File	"sgd/npc_glimpse.cpp"
+			$File	"sgd/npc_glimpse.h"
 			$File	"weapon_cubemap.cpp"
+			$File	"vscript_server.cpp"
+			$File	"vscript_server.h"
+			$File	"$SRCDIR\game\shared\vscript_shared.cpp"
+			$File	"$SRCDIR\game\shared\vscript_shared.h"
 
 			$Folder	"unused"
 			{
