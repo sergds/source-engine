@@ -560,6 +560,11 @@ public:
 	virtual void	FlashWindow();
 	virtual int		GetClientVersion() const; // engines build
 	virtual bool	IsActiveApp();
+
+	// sergds - extended for vscript
+	// is this client running inside the same process as an active server?
+	virtual bool IsClientLocalToActiveServer();
+
 	virtual void	DisconnectInternal();
 
 	virtual int		GetInstancesRunningCount( );
@@ -1645,6 +1650,11 @@ int	CEngineClient::GetClientVersion() const
 bool CEngineClient::IsActiveApp( void )
 {
 	return game->IsActiveApp();
+}
+
+bool CEngineClient::IsClientLocalToActiveServer( void )
+{
+	return sv.IsActive() || sv.IsLoading();
 }
 
 //-----------------------------------------------------------------------------

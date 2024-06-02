@@ -7,6 +7,7 @@
 
 #ifndef BASEENTITY_H
 #define BASEENTITY_H
+#include "entitylist_base.h"
 #ifdef _WIN32
 #pragma once
 #endif
@@ -20,6 +21,8 @@
 #include "ServerNetworkProperty.h"
 #include "shareddefs.h"
 #include "engine/ivmodelinfo.h"
+#include "vscript/ivscript.h"
+#include "vscript_server.h"
 
 class CDamageModifier;
 class CDmgAccumulator;
@@ -310,12 +313,13 @@ a list of all CBaseEntitys is kept in gEntList
 // invalid or there is already an edict using that index, it will error out.
 CBaseEntity *CreateEntityByName( const char *className, int iForceEdictIndex = -1 );
 CBaseNetworkable *CreateNetworkableByName( const char *className );
+CBaseEntity *ToEnt( HSCRIPT hScript );
 
 // creates an entity and calls all the necessary spawn functions
 extern void SpawnEntityByName( const char *className, CEntityMapData *mapData = NULL );
 
 // calls the spawn functions for an entity
-extern int DispatchSpawn( CBaseEntity *pEntity );
+extern int DispatchSpawn( CBaseEntity *pEntity, bool bRunVScripts = true );
 
 inline CBaseEntity *GetContainingEntity( edict_t *pent );
 
@@ -379,7 +383,10 @@ public:
 	DECLARE_SERVERCLASS();
 	// data description
 	DECLARE_DATADESC();
-	
+	// script description
+	DECLARE_ENT_SCRIPTDESC();
+
+
 	// memory handling
     void *operator new( size_t stAllocateBlock );
     void *operator new( size_t stAllocateBlock, int nBlockUse, const char *pFileName, int nLine );
@@ -404,6 +411,7 @@ public:
 	virtual void			SetModelIndex( int index );
 	virtual int				GetModelIndex( void ) const;
  	virtual string_t		GetModelName( void ) const;
+	const char				*ScriptGetModelName( void ) const;
 
 	void					ClearModelIndexOverrides( void );
 	virtual void			SetModelIndexOverride( int index, int nValue );
@@ -493,6 +501,8 @@ public:
 	virtual void			SetOwnerEntity( CBaseEntity* pOwner );
 	void					SetEffectEntity( CBaseEntity *pEffectEnt );
 	CBaseEntity				*GetEffectEntity() const;
+	HSCRIPT					GetScriptOwnerEntity();
+	virtual void			SetScriptOwnerEntity( HSCRIPT pOwner );
 
 	// Only CBaseEntity implements these. CheckTransmit calls the virtual ShouldTransmit to see if the
 	// entity wants to be sent. If so, it calls SetTransmit, which will mark any dependents for transmission too.
@@ -566,6 +576,7 @@ public:
 
 	void ValidateEntityConnections();
 	void FireNamedOutput( const char *pszOutput, variant_t variant, CBaseEntity *pActivator, CBaseEntity *pCaller, float flDelay = 0.0f );
+	CBaseEntityOutput *FindNamedOutput( const char *pszOutput );
 
 	// Activate - called for each entity after each load game and level load
 	virtual void Activate( void );
@@ -588,6 +599,8 @@ public:
 	int			GetParentAttachment();
 
 	string_t	GetEntityName();
+	const char *GetEntityNameAsCStr();	// This method is temporary for VSCRIPT functionality until we figure out what to do with string_t (sjb)
+	const char *GetPreTemplateName(); // Not threadsafe. Get the name stripped of template unique decoration
 
 	bool		NameMatches( const char *pszNameOrWildcard );
 	bool		ClassMatches( const char *pszClassOrWildcard );
@@ -667,9 +680,15 @@ public:
 	void InputFireUser2( inputdata_t &inputdata );
 	void InputFireUser3( inputdata_t &inputdata );
 	void InputFireUser4( inputdata_t &inputdata );
+	void InputRunScript( inputdata_t &inputdata );
+	void InputRunScriptFile( inputdata_t &inputdata );
+	void InputCallScriptFunction( inputdata_t &inputdata );
 
 	// Returns the origin at which to play an inputted dispatcheffect 
 	virtual void GetInputDispatchEffectPosition( const char *sInputString, Vector &pOrigin, QAngle &pAngles );
+
+	bool RunScriptFile( const char *pScriptFile, bool bUseRootScope = false );
+	bool RunScript( const char *pScriptText, const char *pDebugFilename = "CBaseEntity::RunScript" );
 
 	// tries to read a field from the entities data description - result is placed in variant_t
 	bool ReadKeyField( const char *varName, variant_t *var );
@@ -1196,6 +1215,48 @@ public:
 	int				m_debugOverlays;	// For debug only (bitfields)
 	TimedOverlay_t*	m_pTimedOverlay;	// For debug only
 
+	// VSCRIPT
+	HSCRIPT GetScriptInstance();
+	bool ValidateScriptScope();
+	virtual void RunVScripts();
+	bool CallScriptFunction( const char *pFunctionName, ScriptVariant_t *pFunctionReturn );
+	void ConnectOutputToScript( const char *pszOutput, const char *pszScriptFunc );
+	void DisconnectOutputFromScript( const char *pszOutput, const char *pszScriptFunc );
+	void ScriptThink( );
+	const char *GetScriptId();
+	HSCRIPT GetScriptScope();
+	void RunPrecacheScripts( void );
+	void RunOnPostSpawnScripts( void );
+
+	HSCRIPT ScriptGetMoveParent( void );
+	HSCRIPT ScriptGetRootMoveParent();
+	HSCRIPT ScriptFirstMoveChild( void );
+	HSCRIPT ScriptNextMovePeer( void );
+
+	const Vector &ScriptEyePosition( void ) { static Vector vec; vec = EyePosition(); return vec;}
+	void ScriptSetAngles( float fPitch, float fYaw, float fRoll ) {QAngle angles(fPitch,fYaw,fRoll); Teleport(NULL, &angles, NULL);}
+	const Vector &ScriptGetAngles( void ) { static Vector vec; QAngle qa = GetAbsAngles(); vec.x = qa.x; vec.y = qa.y; vec.z = qa.z; return vec;}
+	
+	void ScriptSetSize( const Vector &mins, const Vector &maxs ) { UTIL_SetSize( this, mins, maxs ); }
+	void ScriptUtilRemove( void ) { UTIL_Remove( this ); }
+	void ScriptSetOwner( HSCRIPT hEntity ) { SetOwnerEntity( ToEnt( hEntity ) ); }
+	void ScriptSetOrigin( const Vector &v ) { Teleport( &v, NULL, NULL ); }
+	void ScriptSetForward( const Vector &v ) { QAngle angles; VectorAngles( v, angles ); Teleport( NULL, &angles, NULL ); }
+	const Vector &ScriptGetForward( void ) { static Vector vecForward; GetVectors( &vecForward, NULL, NULL ); return vecForward; }
+	const Vector &ScriptGetLeft( void ) { static Vector vecLeft; GetVectors( NULL, &vecLeft, NULL ); return vecLeft; }
+	const Vector &ScriptGetUp( void ) { static Vector vecUp; GetVectors( NULL, NULL, &vecUp ); return vecUp; }
+
+	void ScriptPrecacheModel( const char *name );
+	void ScriptPrecacheScriptSound( const char *name );
+
+	string_t		m_iszVScripts;
+	string_t		m_iszScriptThinkFunction;
+	CScriptScope	m_ScriptScope;
+	HSCRIPT			m_hScriptInstance;
+	string_t		m_iszScriptId;
+	// FIXME: Need fancy tier1 with KV.
+	//CScriptKeyValues *m_pScriptModelKeyValues;
+
 	// virtual functions used by a few classes
 	
 	// creates an entity of a specified class, by name
@@ -1236,6 +1297,8 @@ public:
 	void			SetAbsVelocity( const Vector &vecVelocity );
 	void			ApplyAbsVelocityImpulse( const Vector &vecImpulse );
 	void			ApplyLocalAngularVelocityImpulse( const AngularImpulse &angImpulse );
+	const Vector&	ScriptGetLocalAngularVelocity( void );
+	void			ScriptSetLocalAngularVelocity( float pitchVel, float yawVel, float rollVel );
 
 	const Vector&	GetLocalVelocity( ) const;
 	const Vector&	GetAbsVelocity( ) const;
@@ -1314,6 +1377,9 @@ public:
 
 	// This defines collision bounds in OBB space
 	void					SetCollisionBounds( const Vector& mins, const Vector &maxs );
+	const Vector&			ScriptGetBoundingMins( void );
+	const Vector&			ScriptGetBoundingMaxs( void );
+
 
 	// NOTE: The world space center *may* move when the entity rotates.
 	virtual const Vector&	WorldSpaceCenter( ) const;
@@ -1369,6 +1435,9 @@ public:
 	// See CSoundEmitterSystem
 	void					EmitSound( const char *soundname, float soundtime = 0.0f, float *duration = NULL );  // Override for doing the general case of CPASAttenuationFilter filter( this ), and EmitSound( filter, entindex(), etc. );
 	void					EmitSound( const char *soundname, HSOUNDSCRIPTHANDLE& handle, float soundtime = 0.0f, float *duration = NULL );  // Override for doing the general case of CPASAttenuationFilter filter( this ), and EmitSound( filter, entindex(), etc. );
+	void					ScriptEmitSound( const char *soundname );
+	void					ScriptStopSound( const char *soundname );
+	float					ScriptSoundDuration( const char *soundname, const char *actormodel );
 	void					StopSound( const char *soundname );
 	void					StopSound( const char *soundname, HSOUNDSCRIPTHANDLE& handle );
 	void					GenderExpandString( char const *in, char *out, int maxlen );
@@ -1396,6 +1465,7 @@ public:
 	// These files need to be listed in scripts/game_sounds_manifest.txt
 	static HSOUNDSCRIPTHANDLE PrecacheScriptSound( const char *soundname );
 	static void PrefetchScriptSound( const char *soundname );
+	void VScriptPrecacheScriptSound( const char *soundname );
 
 	// For each client who appears to be a valid recipient, checks the client has disabled CC and if so, removes them from 
 	//  the recipient list.
@@ -1637,8 +1707,8 @@ private:
 	// was pev->flags
 	CNetworkVarForDerived( int, m_fFlags );
 
-	string_t m_iName;	// name used to identify this entity
-
+	CNetworkVar( string_t, m_iName ); // name used to identify this entity
+	
 	// Damage modifiers
 	friend class CDamageModifier;
 	CUtlLinkedList<CDamageModifier*,int>	m_DamageModifiers;
@@ -1969,6 +2039,15 @@ inline void CBaseEntity::SetName( string_t newName )
 	m_iName = newName;
 }
 
+inline const char *CBaseEntity::GetPreTemplateName()
+{
+	const char *pszDelimiter = V_strrchr( STRING(m_iName.Get()), '&' );
+	if ( !pszDelimiter )
+		return STRING( m_iName.Get() );
+	static char szStrippedName[128];
+	V_strncpy( szStrippedName, STRING( m_iName.Get() ), MIN( ARRAYSIZE(szStrippedName), pszDelimiter - STRING( m_iName.Get() ) + 1 ) );
+	return szStrippedName;
+}
 
 inline bool CBaseEntity::NameMatches( const char *pszNameOrWildcard )
 {
@@ -2498,6 +2577,11 @@ inline string_t CBaseEntity::GetModelName( void ) const
 	return m_ModelName;
 }
 
+inline const char *CBaseEntity::ScriptGetModelName( void ) const
+{
+	return STRING( m_ModelName );
+}
+
 inline int CBaseEntity::GetModelIndex( void ) const
 {
 	return m_nModelIndex;
@@ -2551,6 +2635,10 @@ inline RenderMode_t CBaseEntity::GetRenderMode() const
 	return (RenderMode_t)m_nRenderMode.Get();
 }
 
+inline const char *CBaseEntity::GetEntityNameAsCStr()
+{
+	return STRING(m_iName.Get());
+}
 
 //-----------------------------------------------------------------------------
 // Methods to cast away const

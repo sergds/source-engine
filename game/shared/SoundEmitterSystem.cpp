@@ -1171,7 +1171,7 @@ void CBaseEntity::EmitSound( const char *soundname, float soundtime /*= 0.0f*/, 
 // Purpose:  Non-static override for doing the general case of CPASAttenuationFilter( this ), and EmitSound( filter, entindex(), etc. );
 // Input  : *soundname - 
 //-----------------------------------------------------------------------------
-void CBaseEntity::EmitSound( const char *soundname, HSOUNDSCRIPTHANDLE& handle, float soundtime /*= 0.0f*/, float *duration /*=NULL*/ )
+void CBaseEntity::EmitSound( const char *soundname, HSOUNDSCRIPTHANDLE& handle, float soundtime /*= 0.0f*/, float *duration /*= NULL*/ )
 {
 	VPROF_BUDGET( "CBaseEntity::EmitSound", _T( "CBaseEntity::EmitSound" ) );
 
@@ -1283,6 +1283,32 @@ void CBaseEntity::EmitSound( IRecipientFilter& filter, int iEntIndex, const Emit
 	// Call into the sound emitter system...
 	g_SoundEmitterSystem.EmitSoundByHandle( filter, iEntIndex, params, handle );
 }
+
+#if !defined ( CLIENT_DLL )
+void CBaseEntity::ScriptEmitSound( const char *soundname )
+{
+	EmitSound( soundname );
+}
+
+void CBaseEntity::ScriptStopSound( const char *soundname )
+{
+	StopSound( soundname );
+}
+
+float CBaseEntity::ScriptSoundDuration( const char *soundname, const char *actormodel )
+{
+	float duration = CBaseEntity::GetSoundDuration( soundname, actormodel );
+	return duration;
+}
+#endif // !CLIENT
+
+#if !defined ( CLIENT_DLL )
+// Same as server version of above, but signiture changed so it can be deduced by the macros
+void CBaseEntity::VScriptPrecacheScriptSound( const char *soundname )
+{
+	g_SoundEmitterSystem.PrecacheScriptSound( soundname );
+}
+#endif // !CLIENT_DLL
 
 //-----------------------------------------------------------------------------
 // Purpose: 

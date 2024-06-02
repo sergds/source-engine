@@ -54,6 +54,7 @@
 #include "inputsystem/iinputsystem.h"
 #include "filesystem/IQueuedLoader.h"
 #include "reslistgenerator.h"
+#include "vscript/ivscript.h"
 #include "tier1/fmtstr.h"
 #include "sourcevr/isourcevirtualreality.h"
 
@@ -681,6 +682,7 @@ bool CSourceAppSystemGroup::Create()
 		{ "vguimatsurface" DLL_EXT_STRING,	VGUI_SURFACE_INTERFACE_VERSION },
 		{ "vgui2" DLL_EXT_STRING,			VGUI_IVGUI_INTERFACE_VERSION },
 		{ "engine" DLL_EXT_STRING,			VENGINE_LAUNCHER_API_VERSION },
+		{"vscript" DLL_EXT_STRING, VSCRIPT_INTERFACE_VERSION},
 
 		{ "", "" }							// Required to terminate the list
 	};
