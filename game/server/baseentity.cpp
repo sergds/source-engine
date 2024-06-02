@@ -285,8 +285,6 @@ IMPLEMENT_SERVERCLASS_ST_NOBASE( CBaseEntity, DT_BaseEntity )
 	SendPropEHandle (SENDINFO_NAME(m_hMoveParent, moveparent)),
 	SendPropInt		(SENDINFO(m_iParentAttachment), NUM_PARENTATTACHMENT_BITS, SPROP_UNSIGNED),
 
-	SendPropString( SENDINFO( m_iName ) ),
-
 	SendPropInt		(SENDINFO_NAME( m_MoveType, movetype ), MOVETYPE_MAX_BITS, SPROP_UNSIGNED ),
 	SendPropInt		(SENDINFO_NAME( m_MoveCollide, movecollide ), MOVECOLLIDE_MAX_BITS, SPROP_UNSIGNED ),
 #if PREDICTION_ERROR_CHECK_LEVEL > 1 
@@ -1157,7 +1155,7 @@ void CBaseEntity::SetParent( CBaseEntity *pParentEntity, int iAttachment )
 		return;
 	}
 
-	m_iParent = m_pParent->m_iName.Get();
+	m_iParent = m_pParent->m_iName;
 
 	RemoveSolidFlags( FSOLID_ROOT_PARENT_ALIGNED );
 	if ( pParentEntity )
@@ -3109,7 +3107,7 @@ bool CBaseEntity::NameMatchesComplex( const char *pszNameOrWildcard )
 	if ( !Q_stricmp( "!player", pszNameOrWildcard) )
 		return IsPlayer();
 
-	return NamesMatch( pszNameOrWildcard, m_iName.Get() );
+	return NamesMatch( pszNameOrWildcard, m_iName );
 }
 
 bool CBaseEntity::ClassMatchesComplex( const char *pszClassOrWildcard )
@@ -3811,9 +3809,9 @@ const char *CBaseEntity::GetDebugName(void)
 	if ( this == NULL )
 		return "<<null>>";
 
-	if ( m_iName.Get() != NULL_STRING ) 
+	if ( m_iName != NULL_STRING ) 
 	{
-		return STRING(m_iName.Get());
+		return STRING(m_iName);
 	}
 	else
 	{
@@ -3999,7 +3997,7 @@ bool CBaseEntity::AcceptInput( const char *szInputName, CBaseEntity *pActivator,
 					// mapper debug message
 					if (pCaller != NULL)
 					{
-						Q_snprintf( szBuffer, sizeof(szBuffer), "(%0.2f) input %s: %s.%s(%s)\n", gpGlobals->curtime, STRING(pCaller->m_iName.Get()), GetDebugName(), szInputName, Value.String() );
+						Q_snprintf( szBuffer, sizeof(szBuffer), "(%0.2f) input %s: %s.%s(%s)\n", gpGlobals->curtime, STRING(pCaller->m_iName), GetDebugName(), szInputName, Value.String() );
 					}
 					else
 					{
@@ -4024,7 +4022,7 @@ bool CBaseEntity::AcceptInput( const char *szInputName, CBaseEntity *pActivator,
 								Warning( "!! ERROR: bad input/output link:\n!! %s(%s,%s) doesn't match type from %s(%s)\n", 
 									STRING(m_iClassname), GetDebugName(), szInputName, 
 									( pCaller != NULL ) ? STRING(pCaller->m_iClassname) : "<null>",
-									( pCaller != NULL ) ? STRING(pCaller->m_iName.Get()) : "<null>" );
+									( pCaller != NULL ) ? STRING(pCaller->m_iName) : "<null>" );
 								return false;
 							}
 						}
@@ -4044,7 +4042,7 @@ bool CBaseEntity::AcceptInput( const char *szInputName, CBaseEntity *pActivator,
 
 						// Now, see if there's a function named Input<Name of Input> in this entity's script file. 
 						// If so, execute it and let it decide whether to allow the default behavior to also execute.
-						bool bCallInputFunc = true; // Always assume default behavior (do call the input function)
+						bool bCallInputFunc = false; // sergds - Always assume that function doesn't exist or else the shit gets weird.
 						ScriptVariant_t functionReturn;
 
 						if ( m_ScriptScope.IsInitialized() )
@@ -7764,7 +7762,7 @@ HSCRIPT CBaseEntity::GetScriptInstance()
 		if ( m_iszScriptId == NULL_STRING )
 		{
 			char *szName = (char *)stackalloc( 1024 );
-			g_pScriptVM->GenerateUniqueKey( ( m_iName.Get() != NULL_STRING ) ? STRING(GetEntityName()) : GetClassname(), szName, 1024 );
+			g_pScriptVM->GenerateUniqueKey( ( m_iName != NULL_STRING ) ? STRING(GetEntityName()) : GetClassname(), szName, 1024 );
 			m_iszScriptId = AllocPooledString( szName );
 		}
 

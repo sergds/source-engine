@@ -1707,7 +1707,7 @@ private:
 	// was pev->flags
 	CNetworkVarForDerived( int, m_fFlags );
 
-	CNetworkVar( string_t, m_iName ); // name used to identify this entity
+	string_t m_iName;	// name used to identify this entity	
 	
 	// Damage modifiers
 	friend class CDamageModifier;
@@ -2031,7 +2031,7 @@ inline int CBaseEntity::GetParentAttachment()
 //-----------------------------------------------------------------------------
 inline string_t CBaseEntity::GetEntityName() 
 { 
-	return m_iName; 
+	return m_iName;
 }
 
 inline void CBaseEntity::SetName( string_t newName )
@@ -2041,11 +2041,11 @@ inline void CBaseEntity::SetName( string_t newName )
 
 inline const char *CBaseEntity::GetPreTemplateName()
 {
-	const char *pszDelimiter = V_strrchr( STRING(m_iName.Get()), '&' );
+	const char *pszDelimiter = V_strrchr( STRING(m_iName), '&' );
 	if ( !pszDelimiter )
-		return STRING( m_iName.Get() );
+		return STRING( m_iName );
 	static char szStrippedName[128];
-	V_strncpy( szStrippedName, STRING( m_iName.Get() ), MIN( ARRAYSIZE(szStrippedName), pszDelimiter - STRING( m_iName.Get() ) + 1 ) );
+	V_strncpy( szStrippedName, STRING( m_iName ), MIN( ARRAYSIZE(szStrippedName), pszDelimiter - STRING( m_iName ) + 1 ) );
 	return szStrippedName;
 }
 
@@ -2637,7 +2637,7 @@ inline RenderMode_t CBaseEntity::GetRenderMode() const
 
 inline const char *CBaseEntity::GetEntityNameAsCStr()
 {
-	return STRING(m_iName.Get());
+	return STRING(m_iName);
 }
 
 //-----------------------------------------------------------------------------

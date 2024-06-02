@@ -602,7 +602,7 @@ CBaseEntity *CGlobalEntityList::FindEntityByName( CBaseEntity *pStartEntity, con
 			continue;
 		}
 
-		if ( !ent->m_iName.Get() )
+		if ( !ent->m_iName )
 			continue;
 
 		if ( ent->NameMatches( szName ) )
