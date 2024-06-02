@@ -56,6 +56,8 @@ LINK_ENTITY_TO_CLASS( point_devshot_camera, CPointDevShotCamera );
 //-----------------------------------------------------------------------------
 // Purpose: Convenience function so we don't have to make this check all over
 //-----------------------------------------------------------------------------
+// sergds - moved to util.h like in cstrike15.
+/*
 static CBasePlayer * UTIL_GetLocalPlayerOrListenServerHost( void )
 {
 	if ( gpGlobals->maxClients > 1 )
@@ -70,7 +72,7 @@ static CBasePlayer * UTIL_GetLocalPlayerOrListenServerHost( void )
 
 	return UTIL_GetLocalPlayer();
 }
-
+*/
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------

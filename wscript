@@ -90,6 +90,7 @@ projects={
 		'vphysics',
 		'vpklib',
 		'vstdlib',
+		"vscript",
 		'vtf',
 		'utils/vtex',
 		'unicode',
