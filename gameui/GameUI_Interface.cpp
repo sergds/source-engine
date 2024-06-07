@@ -5,6 +5,8 @@
 // $NoKeywords: $
 //===========================================================================//
 
+#include "convar.h"
+#include "iconvar.h"
 #ifdef WIN32
 #if !defined( _X360 )
 #include <windows.h>
@@ -995,12 +997,16 @@ bool CGameUI::UpdateProgressBar(float progress, const char *statusText)
 	return bRedraw;
 }
 
+ConVar gameui_disable_loading_dialog("gameui_disable_loading_dialog", "1", FCVAR_CLIENTDLL|FCVAR_ARCHIVE);
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void CGameUI::StartProgressBar()
 {
+	if(gameui_disable_loading_dialog.GetBool())
+		return;
+
 	if ( !g_hLoadingDialog.Get() )
 	{
 		g_hLoadingDialog = new CLoadingDialog(staticPanel);
@@ -1029,6 +1035,9 @@ bool CGameUI::ContinueProgressBar( float progressFraction )
 //-----------------------------------------------------------------------------
 void CGameUI::StopProgressBar(bool bError, const char *failureReason, const char *extendedReason)
 {
+	if(gameui_disable_loading_dialog.GetBool())
+		return;
+
 	if (!g_hLoadingDialog.Get() && bError)
 	{
 		g_hLoadingDialog = new CLoadingDialog(staticPanel);
