@@ -38,7 +38,7 @@ public:
 		{
 			pVM = ScriptCreateSquirrelVM();
 		}
-#if !defined( _GAMECONSOLE ) && !defined( LINUX )
+#if !defined( _GAMECONSOLE ) && !defined( LINUX ) && 0 // sergds: kill it with fire.
 		else if ( language == SL_LUA )
 		{
 			pVM = ScriptCreateLuaVM();
@@ -76,7 +76,7 @@ public:
 			{
 				ScriptDestroySquirrelVM( p );
 			}
-#if !defined( _GAMECONSOLE ) && !defined( LINUX )
+#if !defined( _GAMECONSOLE ) && !defined( LINUX ) && 0 // sergds: kill vlua
 			else if ( p->GetLanguage() == SL_LUA )
 			{
 				ScriptDestroyLuaVM( p );

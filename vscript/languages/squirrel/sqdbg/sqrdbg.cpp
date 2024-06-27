@@ -5,6 +5,7 @@
 #include <squirrel.h>
 #if !defined( _X360 ) && !defined( _PS3 ) && !defined( POSIX )
 #include <winsock.h>
+typedef int socklen_t;
 #endif
 #include "sqrdbg.h"
 #include "sqdbgserver.h"
